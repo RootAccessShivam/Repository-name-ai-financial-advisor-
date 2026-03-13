@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>AI Financial Advisor</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f4f6f8;
+text-align:center;
+margin-top:100px;
+}
+
+.container{
+background:white;
+padding:30px;
+width:400px;
+margin:auto;
+border-radius:10px;
+box-shadow:0px 0px 10px gray;
+}
+
+input{
+width:90%;
+padding:10px;
+margin:10px;
+border-radius:5px;
+border:1px solid gray;
+}
+
+button{
+padding:10px 20px;
+background:#4CAF50;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#45a049;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>AI Financial Advisor</h2>
+
+<form method="POST">
+
+<input type="number" name="income" placeholder="Enter Monthly Income" required>
+
+<input type="number" name="rent" placeholder="Rent Expense" required>
+
+<input type="number" name="food" placeholder="Food Expense" required>
+
+<input type="number" name="transport" placeholder="Transport Expense" required>
+
+<input type="number" name="entertainment" placeholder="Entertainment Expense" required>
+
+<br>
+
+<button type="submit">Get Advice</button>
+
+</form>
+
+<h3>Savings: {{ savings }}</h3>
+
+<h3>{{ advice }}</h3>
+
+<canvas id="financeChart" width="400" height="200"></canvas>
+
+<canvas id="expenseChart" width="400" height="200"></canvas>
+
+<hr>
+
+<h2>AI Financial Chatbot</h2>
+
+<input type="text" id="userMessage" placeholder="Ask about savings or investment">
+
+<button onclick="sendMessage()">Ask</button>
+
+<p id="botReply"></p>
+
+</div>
+
+<script>
+
+var income = {{ request.form.get('income',0) }};
+var savings = {{ savings }};
+
+var rent = {{ rent | default(0) }};
+var food = {{ food | default(0) }};
+var transport = {{ transport | default(0) }};
+var entertainment = {{ entertainment | default(0) }};
+
+var expenses = rent + food + transport + entertainment;
+
+
+
+var ctx = document.getElementById('financeChart').getContext('2d');
+
+new Chart(ctx, {
+type:'bar',
+data:{
+labels:['Income','Expenses','Savings'],
+datasets:[{
+label:'Financial Overview',
+data:[income,expenses,savings]
+}]
+}
+});
+
+/* Pie Chart */
+
+var ctx2 = document.getElementById('expenseChart').getContext('2d');
+
+new Chart(ctx2,{
+type:'pie',
+data:{
+labels:['Rent','Food','Transport','Entertainment'],
+datasets:[{
+data:[rent,food,transport,entertainment]
+}]
+}
+});
+
+/* Chatbot */
+
+function sendMessage(){
+
+let message = document.getElementById("userMessage").value;
+
+fetch("/chat",{
+method:"POST",
+headers:{
+"Content-Type":"application/x-www-form-urlencoded"
+},
+body:"message="+message
+})
+.then(response=>response.json())
+.then(data=>{
+document.getElementById("botReply").innerText=data.reply;
+document.getElementById("userMessage").value="";
+});
+
+}
+
+</script>
+
+</body>
+
+</html>
